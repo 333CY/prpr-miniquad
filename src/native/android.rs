@@ -68,6 +68,7 @@ enum Message {
     },
     Pause,
     Resume,
+    Stop,
     Destroy,
 }
 unsafe impl Send for Message {}
@@ -264,7 +265,7 @@ impl MainThreadState {
             Message::SurfaceCreated { window } => unsafe {
                 self.update_surface(window);
             },
-            Message::SurfaceDestroyed => unsafe {
+            Message::Stop => unsafe {
                 self.destroy_surface();
             },
             Message::SurfaceChanged {
@@ -728,4 +729,11 @@ pub(crate) unsafe fn load_asset(filepath: *const ::std::os::raw::c_char, out: *m
         (*out).content_length = length as _;
         (*out).content = buffer as _;
     }
+}
+#[no_mangle]
+unsafe extern "C" fn Java_quad_1native_QuadNative_activityOnStop(
+    _: *mut ndk_sys::JNIEnv,
+    _: ndk_sys::jobject,
+) {
+    send_message(Message::Stop);
 }
